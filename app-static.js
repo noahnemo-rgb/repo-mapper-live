@@ -203,6 +203,7 @@ let CURRENT_REPO = null;
 let CURRENT_MANIFEST = null;
 let CURRENT_SCAFFOLD = null;
 let CURRENT_GAPS = null;
+let CURRENT_MULTIVERSE = null;
 let CURRENT_MODE = 'single';
 
 const MATURITY = {
@@ -394,6 +395,90 @@ repos:
       A worldwide restoration ecosystem focused on recycling refuse and restoring land and water.
 `;
 
+const ONE_MULTIVERSE_RAW = `
+multiverse:
+  name: ONE Multiverse
+  tagline: "One Multiverse. Many Universes. Infinite Becoming."
+  governance:
+    framework: HASEOS
+    repo: github.com/noahnemo-rgb/haseos-spiral-swarm
+
+universes:
+  - id: one-universe
+    name: ONE Universe
+    role: reference-implementation
+    manifest: one-universe
+    repo: github.com/noahnemo-rgb/ONE-
+    maturity: scaffolded
+    description: The reference implementation. All child universes inherit its structural grammar.
+    
+  - id: one-in-fun-net-universe
+    name: ONE In-Fun.net Universe
+    role: child-universe
+    repo: github.com/noahnemo-rgb/one-in-fun-net-universe
+    maturity: placeholder
+    known_gaps:
+      - universe.yaml not yet created
+      - governance layer missing
+      - no ecosystems defined
+      - no MVPs
+    
+  - id: one-hyper-dimensional-universe
+    name: ONE Hyper-dimensional Universe
+    role: child-universe
+    repo: github.com/noahnemo-rgb/one-hyper-dimensional-universe
+    maturity: placeholder
+    known_gaps:
+      - universe.yaml not yet created
+      - governance layer missing
+      - no ecosystems defined
+      - no MVPs
+
+structural_gaps:
+  - id: one-in-fun-net-universe-repo
+    severity: major
+    description: Repository not yet created on GitHub
+    layer: universe
+  - id: one-hyper-dimensional-universe-repo
+    severity: major
+    description: Repository not yet created on GitHub
+    layer: universe
+  - id: shared-templates
+    severity: minor
+    description: shared-templates/ folder not yet scaffolded
+    layer: multiverse
+  - id: haseos-restructure
+    severity: critical
+    description: haseos-spiral-swarm needs governance/ directory restructured per SCAFFOLD.md
+    layer: governance
+`;
+
+const MULTIVERSE_DATA = {
+  multiverse: {
+    name: 'ONE Multiverse',
+    tagline: 'One Multiverse. Many Universes. Infinite Becoming.',
+    governance: { framework: 'HASEOS', repo: 'github.com/noahnemo-rgb/haseos-spiral-swarm' }
+  },
+  universes: [
+    { id: 'one-universe', name: 'ONE Universe', role: 'reference-implementation',
+      repo: 'github.com/noahnemo-rgb/ONE-', maturity: 'scaffolded',
+      description: 'The reference implementation. All child universes inherit its structural grammar.',
+      known_gaps: [] },
+    { id: 'one-in-fun-net-universe', name: 'ONE In-Fun.net Universe', role: 'child-universe',
+      repo: 'github.com/noahnemo-rgb/one-in-fun-net-universe', maturity: 'placeholder',
+      known_gaps: ['universe.yaml not yet created', 'governance layer missing', 'no ecosystems defined', 'no MVPs'] },
+    { id: 'one-hyper-dimensional-universe', name: 'ONE Hyper-dimensional Universe', role: 'child-universe',
+      repo: 'github.com/noahnemo-rgb/one-hyper-dimensional-universe', maturity: 'placeholder',
+      known_gaps: ['universe.yaml not yet created', 'governance layer missing', 'no ecosystems defined', 'no MVPs'] }
+  ],
+  structural_gaps: [
+    { id: 'haseos-restructure', severity: 'critical', description: 'haseos-spiral-swarm needs governance/ directory restructured per SCAFFOLD.md', layer: 'governance' },
+    { id: 'one-in-fun-net-universe-repo', severity: 'major', description: 'Repository not yet created on GitHub', layer: 'universe' },
+    { id: 'one-hyper-dimensional-universe-repo', severity: 'major', description: 'Repository not yet created on GitHub', layer: 'universe' },
+    { id: 'shared-templates', severity: 'minor', description: 'shared-templates/ folder not yet scaffolded', layer: 'multiverse' }
+  ]
+};
+
 // In-memory uploaded manifests
 const UPLOADED_MANIFESTS = new Map();
 
@@ -418,6 +503,74 @@ function structureManifest(doc) {
   return { universe: doc.universe, repos, stats, _raw: '' };
 }
 
+function renderMultiverseView(data) {
+  const view = $('#multiverseView');
+  if (!view) return;
+  const mv = data.multiverse;
+
+  // Build HASEOS badge
+  const govBadge = mv.governance ? `<span class="haseos-badge">&#x2696; ${esc(mv.governance.framework)}</span>` : '';
+
+  // Universe cards
+  const universeCards = data.universes.map(u => {
+    const matColor = MATURITY[u.maturity]?.color || '#7a82a8';
+    const isRef = u.role === 'reference-implementation';
+    const gapCount = (u.known_gaps || []).length;
+    const gapBadge = gapCount ? `<span class="gap-badge">${gapCount} gap${gapCount > 1 ? 's' : ''}</span>` : '';
+    const refBadge = isRef ? `<span class="badge-reference">reference impl</span>` : '';
+    return `
+      <div class="universe-card ${isRef ? 'universe-card--reference' : ''}">
+        <div class="universe-card-header">
+          <span class="universe-card-name">${esc(u.name)}</span>
+          ${refBadge}
+          <span class="maturity-chip" style="background:${matColor}22;color:${matColor};border:1px solid ${matColor}44">${esc(u.maturity)}</span>
+        </div>
+        ${u.description ? `<p class="universe-card-desc">${esc(u.description)}</p>` : ''}
+        ${u.repo ? `<a class="universe-card-repo" href="https://${u.repo}" target="_blank" rel="noopener">&nearr; ${esc(u.repo)}</a>` : ''}
+        ${gapBadge}
+        ${gapCount ? `<ul class="universe-gap-list">${(u.known_gaps||[]).map(g=>`<li>${esc(g)}</li>`).join('')}</ul>` : ''}
+      </div>`;
+  }).join('');
+
+  // Structural gaps panel
+  const structuralGapsHtml = data.structural_gaps.map(g => `
+    <div class="structural-gap gap-severity-${esc(g.severity)}">
+      <span class="gap-severity-label gap-severity-${esc(g.severity)}">${esc(g.severity.toUpperCase())}</span>
+      <span class="gap-layer">[${esc(g.layer)}]</span>
+      <span class="gap-desc">${esc(g.description)}</span>
+    </div>`).join('');
+
+  view.innerHTML = `
+    <div class="multiverse-header">
+      <h2 class="multiverse-title">${esc(mv.name)}</h2>
+      <p class="multiverse-tagline">${esc(mv.tagline)}</p>
+      ${govBadge}
+    </div>
+
+    <div class="hierarchy-breadcrumb">
+      <span class="crumb crumb--active">ONE Multiverse</span>
+      <span class="crumb-sep">&rarr;</span>
+      <span class="crumb">Child Universes</span>
+      <span class="crumb-sep">&rarr;</span>
+      <span class="crumb">Container Layers</span>
+      <span class="crumb-sep">&rarr;</span>
+      <span class="crumb">Ecosystems</span>
+      <span class="crumb-sep">&rarr;</span>
+      <span class="crumb">MVPs / Products</span>
+    </div>
+
+    <section class="universe-cards-section">
+      <h3 class="section-label">Universes</h3>
+      <div class="universe-cards-grid">${universeCards}</div>
+    </section>
+
+    <section class="structural-gaps-section">
+      <h3 class="section-label">Structural Gaps <span class="gap-count-badge">${data.structural_gaps.length}</span></h3>
+      <div class="structural-gaps-panel">${structuralGapsHtml}</div>
+    </section>
+  `;
+}
+
 function getManifestList() {
   const list = [{ id: 'one-universe', name: 'ONE Universe', builtin: true }];
   for (const [id, { name }] of UPLOADED_MANIFESTS) list.push({ id, name, builtin: false });
@@ -436,6 +589,10 @@ function setMode(mode) {
   CURRENT_MODE = mode;
   $$('.mode-pill').forEach(p => p.classList.toggle('active', p.dataset.mode === mode));
   $$('.view').forEach(v => { v.hidden = v.dataset.view !== mode; });
+  if (mode === 'multiverse') {
+    if (!CURRENT_MULTIVERSE) { CURRENT_MULTIVERSE = MULTIVERSE_DATA; }
+    renderMultiverseView(CURRENT_MULTIVERSE);
+  }
   if (mode === 'universe') {
     populateManifestPickers();
     if (!CURRENT_MANIFEST) loadManifest('one-universe');
@@ -454,7 +611,7 @@ window.addEventListener('load', async () => {
   if (!h) { setMode('single'); return; }
   const parts = h.split('/');
   const mode = parts[0];
-  if (['single','universe','scaffold','gaps'].includes(mode)) {
+  if (['single','universe','scaffold','gaps','multiverse'].includes(mode)) {
     setMode(mode);
     const target = parts.slice(1).join('/');
     if (mode === 'single' && target) { $('#repoUrl').value = target; analyze(target); }
@@ -819,6 +976,17 @@ function renderUniverse(m) {
   $('#universeLoading').hidden=true;
   $('#universeResult').hidden=false;
   $('#universeStats').hidden=false;
+  // Inject multiverse breadcrumb link above stats
+  const statsEl = $('#universeStats');
+  let mvCrumb = $('#universeMvCrumb');
+  if (!mvCrumb) {
+    mvCrumb = document.createElement('div');
+    mvCrumb.id = 'universeMvCrumb';
+    mvCrumb.className = 'hierarchy-breadcrumb';
+    mvCrumb.style.marginBottom = '12px';
+    statsEl.parentNode.insertBefore(mvCrumb, statsEl);
+  }
+  mvCrumb.innerHTML = `<span class="crumb" onclick="setMode('multiverse')" style="cursor:pointer;text-decoration:underline">ONE Multiverse</span><span class="crumb-sep">&rarr;</span><span class="crumb crumb--active">${esc(m.universe?.name||'ONE Universe')}</span>`;
   $('#statRepos').textContent=m.repos.length;
   $('#statEcosystems').textContent=m.repos.filter(r=>r.role==='ecosystem').length;
   const avg=m.repos.reduce((s,r)=>s+(MATURITY[r.maturity]?.order??0),0)/m.repos.length;
