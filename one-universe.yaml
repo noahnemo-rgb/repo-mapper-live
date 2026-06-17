@@ -1,0 +1,369 @@
+# ============================================================
+# universe.yaml — Canonical manifest of the ONE Universe
+# ============================================================
+# This file is the single source of truth for every repo, ecosystem,
+# and governance layer that belongs to ONE Universe. Repo Mapper reads
+# this file to render the Universe view, generate scaffolds, and track
+# gaps across the constellation.
+#
+# Maturity tiers:
+#   placeholder   — repo exists, near-empty
+#   scaffolded    — folder structure and stubs in place, no real content
+#   drafting      — content being written, no working product
+#   mvp-partial   — MVP exists, missing major pieces (backend, compliance, etc.)
+#   mvp-near      — MVP nearly complete, polish + compliance remaining
+#   production    — live and operating
+#
+# Role types:
+#   master        — top-level brand container
+#   governance    — cross-cutting governance layer
+#   container     — groups other repos (e.g. ONE Ecology)
+#   ecosystem     — a major ecosystem within ONE Ecology
+#   product       — a product line inside an ecosystem
+#   codex         — an evolving governance tome inside an ecosystem
+# ============================================================
+
+universe:
+  name: ONE Universe
+  tagline: One Universe. Many Ecosystems. Infinite Becoming.
+  brand:
+    logo: BRAND/logo.jpg
+    palette:
+      cosmos: "#0a0820"          # deep space navy
+      starfield: "#1a1640"       # mid cosmos
+      prism_violet: "#9b6bff"    # iridescent violet from the loop
+      prism_rose: "#ff7eb6"      # iridescent rose from the loop
+      prism_gold: "#ffd27a"      # warm gold from the central star
+      prism_teal: "#7ce8d4"      # iridescent teal from the loop
+      ivory: "#f5efe6"           # the lion's mane / the woman's form
+      heart: "#ff8fa3"           # the heart at the center
+    typography:
+      display: "Cormorant Garamond"   # literary serif for the brand voice
+      body: "Inter"                    # clean sans for documentation
+      mono: "JetBrains Mono"           # for code & manifests
+  vision: |
+    ONE Universe is a constellation of ecosystems unified by a single
+    governance philosophy (HASEOS) and a shared ecological intent
+    (ONE Ecology). Each ecosystem is sovereign in its own domain
+    yet bound by the same principles of stewardship, transparency,
+    and continuous becoming.
+
+# ============================================================
+# Layer 1 — Master + cross-cutting governance
+# ============================================================
+
+repos:
+
+  - id: one-universe
+    name: ONE Universe
+    role: master
+    repo: github.com/noahnemo-rgb/one-universe
+    maturity: scaffolded
+    tags: [master, brand, manifest]
+    owner: noahnemo-rgb
+    description: >
+      The master brand repo. Holds the canonical universe.yaml, brand
+      assets, top-level ADRs, and the front-door README that maps the
+      entire universe.
+    contains:
+      - BRAND/
+      - ADR/
+      - docs/
+      - universe.yaml
+      - README.md
+      - STATUS.md
+    references:
+      - haseos          # mirrored as submodule
+      - one-ecology     # mirrored as submodule
+
+  - id: haseos
+    name: HASEOS
+    role: governance
+    repo: github.com/noahnemo-rgb/haseos
+    maturity: drafting
+    tags: [governance, cross-cutting, charter]
+    owner: noahnemo-rgb
+    applies_to: [all]
+    description: >
+      The overarching governance layer that applies to every ecosystem
+      within ONE Ecology. Defines policies, compliance frameworks,
+      shared identity primitives, and treasury rules. Mirrored into
+      ONE Universe as a submodule for navigational convenience.
+    contains:
+      - charter.md
+      - policies/
+      - compliance/
+      - identity/
+      - treasury/
+      - BRAND/
+    subsystems:
+      - haos
+      - dsm
+      - haia
+
+  - id: haos
+    name: HAOS — Human-AI Operating Subsystem
+    role: governance-subsystem
+    repo: github.com/noahnemo-rgb/haos
+    maturity: placeholder
+    tags: [governance, subsystem, human-ai, operating-system]
+    owner: noahnemo-rgb
+    parent: haseos
+    description: >
+      The Human-AI Operating Subsystem. Defines how humans and AI
+      agents co-operate within ONE Universe — roles, permissions,
+      protocols for delegation, audit trails, and shared cognition.
+    contains:
+      - charter.md
+      - protocols/
+      - roles/
+      - audit/
+      - BRAND/
+
+  - id: dsm
+    name: DSM — Defensive Sentinel Mode
+    role: governance-subsystem
+    repo: github.com/noahnemo-rgb/dsm
+    maturity: placeholder
+    tags: [governance, subsystem, security, threat-response]
+    owner: noahnemo-rgb
+    parent: haseos
+    description: >
+      Defensive Sentinel Mode. Addresses both internal and external
+      threats to ONE Universe — security policy, incident response,
+      threat intel, and the activation/deactivation protocols for
+      defensive postures across the constellation.
+    contains:
+      - charter.md
+      - threats/
+      - response/
+      - postures/
+      - intel/
+      - BRAND/
+
+  - id: haia
+    name: HAIA — Human-AI Alliance
+    role: governance-subsystem
+    repo: github.com/noahnemo-rgb/haia
+    maturity: placeholder
+    tags: [governance, subsystem, dao, voting, membership]
+    owner: noahnemo-rgb
+    parent: haseos
+    description: >
+      The Human-AI Alliance — the voting DAO membership system for
+      ONE Universe. Defines membership classes, voting protocols,
+      proposal lifecycle, and the on-chain/off-chain bridge for
+      governance decisions.
+    contains:
+      - charter.md
+      - membership/
+      - voting/
+      - proposals/
+      - treasury-bridge/
+      - BRAND/
+
+  - id: one-ecology
+    name: ONE Ecology
+    role: container
+    repo: github.com/noahnemo-rgb/one-ecology
+    maturity: scaffolded
+    tags: [container, ecology, ecosystems]
+    owner: noahnemo-rgb
+    parent: one-universe
+    description: >
+      Container repo grouping the six member ecosystems. Holds the
+      ecology.yaml sub-manifest, cross-ecosystem ADRs, and shared
+      ecological primitives used by every member ecosystem.
+    contains:
+      - ecology.yaml
+      - shared/
+      - docs/
+      - BRAND/
+      - STATUS.md
+    members:
+      - one-church
+      - oceanus
+      - one-mesoflex-ai
+      - hpm
+      - one-seedfeast-ai
+      - one-urban-mines
+
+# ============================================================
+# Layer 2 — The six ecosystems
+# ============================================================
+
+  - id: one-church
+    name: ONE (Our New Era) Church
+    role: ecosystem
+    repo: github.com/noahnemo-rgb/one-church
+    maturity: drafting
+    tags: [ecosystem, spiritual, worldwide]
+    owner: noahnemo-rgb
+    parent: one-ecology
+    governed_by: haseos
+    description: >
+      A worldwide spiritual movement. Contains the ONE Aetheric Codex
+      (ever-evolving governance tome), ministries, liturgy, and any
+      product surfaces (web, mobile, congregational tools).
+    sub_components:
+      - id: one-aetheric-codex
+        type: codex
+        path: codex/
+        description: >
+          An ever-evolving, ever-expanding governance tome of ONE Church.
+          Versioned, with canonical books and a canon.yaml index.
+    contains:
+      - codex/
+      - ministries/
+      - liturgy/
+      - product/
+      - compliance/
+      - governance/
+
+  - id: oceanus
+    name: Oceanus
+    role: ecosystem
+    repo: github.com/noahnemo-rgb/oceanus
+    maturity: drafting
+    tags: [ecosystem, sovereign-nation, maritime]
+    owner: noahnemo-rgb
+    parent: one-ecology
+    governed_by: haseos
+    description: >
+      A boundless, borderless worldwide ONE sovereign ocean nation.
+      Currently lacking its constitution — flagged as a critical gap.
+    known_gaps:
+      - constitution                 # primary missing artifact
+      - citizenship-protocol
+      - maritime-law-framework
+    contains:
+      - constitution/                # to be drafted
+      - citizenship/
+      - maritime-law/
+      - territory/
+      - product/
+      - compliance/
+      - governance/
+
+  - id: one-mesoflex-ai
+    name: ONE MesoFlex.ai
+    role: ecosystem
+    repo: github.com/noahnemo-rgb/one-mesoflex-ai
+    maturity: mvp-partial
+    tags: [ecosystem, design-studio, franchise, ai]
+    owner: noahnemo-rgb
+    parent: one-ecology
+    governed_by: haseos
+    description: >
+      A worldwide vastly distributed franchised, branded multiplex
+      design studio ecosystem. Operates via MesoFlex Voice — a
+      hands-free multi-language translator running on off-the-shelf
+      hardware.
+    sub_components:
+      - id: mesoflex-voice
+        type: product
+        path: mesoflex-voice/
+        description: >
+          Hands-free multi-language translator using off-the-shelf
+          hardware. Hardware refs, firmware, app, and language packs.
+    contains:
+      - franchise/
+      - studio-design/
+      - mesoflex-voice/
+      - product/
+      - compliance/
+      - governance/
+
+  - id: hpm
+    name: Human Potential Movement (HPM)
+    role: ecosystem
+    repo: github.com/noahnemo-rgb/hpm
+    maturity: drafting
+    tags: [ecosystem, training, retreats, healing]
+    owner: noahnemo-rgb
+    parent: one-ecology
+    governed_by: haseos
+    description: >
+      A worldwide ecosystem focused on large-group training,
+      self-healing encounters, seminars, and retreats.
+    contains:
+      - curriculum/
+      - facilitators/
+      - venues/
+      - product/
+      - compliance/
+      - governance/
+
+  - id: one-seedfeast-ai
+    name: ONE SeedFeast.ai
+    role: ecosystem
+    repo: github.com/noahnemo-rgb/one-seedfeast-ai
+    maturity: mvp-partial
+    tags: [ecosystem, seeds, marketplace, food-sovereignty, ai]
+    owner: noahnemo-rgb
+    parent: one-ecology
+    governed_by: haseos
+    description: >
+      A worldwide, vastly distributed Seed Exchange Vault ecosystem.
+      Users buy, sell, trade, exchange, and/or gift seeds, roots,
+      plants, plus gourmet recipes — with a particular focus on
+      recovering ancient and heirloom nutritious food sources.
+    contains:
+      - vault/                       # seed exchange protocol + catalog
+      - heirlooms/                   # ancient/heirloom registry
+      - recipes/                     # gourmet recipe library
+      - marketplace/                 # buy/sell/trade/gift logic
+      - product/
+      - compliance/
+      - governance/
+
+  - id: one-urban-mines
+    name: ONE Urban Mines
+    role: ecosystem
+    repo: github.com/noahnemo-rgb/one-urban-mines
+    maturity: drafting
+    tags: [ecosystem, recycling, restoration, environment]
+    owner: noahnemo-rgb
+    parent: one-ecology
+    governed_by: haseos
+    description: >
+      A worldwide restoration ecosystem focused on recycling refuse
+      materials from abandoned and active solid waste dump sites.
+      Ultimate goal: restoring adjacent surface waters, groundwater,
+      and adversely affected land.
+    contains:
+      - sites/                       # dump site registry
+      - materials/                   # recyclable material taxonomy
+      - restoration/                 # water + land restoration protocols
+      - product/
+      - compliance/
+      - governance/
+
+# ============================================================
+# Shared scaffold — applied to every ecosystem repo
+# ============================================================
+# Each ecosystem inherits this skeleton in addition to its own
+# contains: list above. Repo Mapper uses this to detect gaps.
+
+shared_ecosystem_scaffold:
+  required_files:
+    - README.md
+    - STATUS.md
+    - charter.md
+    - roadmap.md
+  required_folders:
+    - governance/        # ecosystem-specific extensions of HASEOS
+    - compliance/        # legal, regulatory, ethical
+    - product/           # MVP / vibe-coded app lives here
+    - docs/              # essays, vision, FAQ
+    - BRAND/             # ecosystem-specific brand extensions
+  compliance_checklist:
+    - privacy.md
+    - terms.md
+    - jurisdiction.md
+    - data-handling.md
+    - accessibility.md
+  product_subfolders:
+    - frontend/
+    - backend/           # flagged when missing — common gap
+    - IMPORT.md          # instructions for importing vibe-coded MVP zips

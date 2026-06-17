@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Repo Mapper — MultiVerse</title>
+<meta name="description" content="Map any GitHub repo or visualize an entire constellation of repos from a universe.yaml manifest." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230a0820'/%3E%3Ccircle cx='16' cy='16' r='5' fill='%23ffd27a'/%3E%3Ccircle cx='16' cy='16' r='10' fill='none' stroke='%239b6bff' stroke-width='1.4'/%3E%3Ccircle cx='16' cy='16' r='13' fill='none' stroke='%237ce8d4' stroke-width='1' opacity='0.7'/%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" />
+<link rel="stylesheet" href="app.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="logo" viewBox="0 0 40 40" aria-label="Repo Mapper">
+      <defs>
+        <radialGradient id="core" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#ffd27a"/>
+          <stop offset="60%" stop-color="#ff7eb6"/>
+          <stop offset="100%" stop-color="#9b6bff" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle cx="20" cy="20" r="6" fill="url(#core)"/>
+      <ellipse cx="20" cy="20" rx="14" ry="5" fill="none" stroke="#9b6bff" stroke-width="1.4" opacity="0.8"/>
+      <ellipse cx="20" cy="20" rx="14" ry="5" fill="none" stroke="#7ce8d4" stroke-width="1" opacity="0.6" transform="rotate(60 20 20)"/>
+      <ellipse cx="20" cy="20" rx="14" ry="5" fill="none" stroke="#ff7eb6" stroke-width="1" opacity="0.6" transform="rotate(-60 20 20)"/>
+    </svg>
+    <div>
+      <div class="brand-name">Repo Mapper</div>
+      <div class="brand-sub">MultiVerse architecture dashboard</div>
+    </div>
+  </div>
+  <nav class="mode-switch" role="tablist" aria-label="Mode">
+    <button class="mode-pill active" data-mode="single">Single Repo</button>
+    <button class="mode-pill" data-mode="universe">Universe</button>
+    <button class="mode-pill" data-mode="scaffold">Scaffold</button>
+    <button class="mode-pill" data-mode="gaps">Gap Dashboard</button>
+  </nav>
+</header>
+
+<main class="container">
+
+<!-- ===================== SINGLE REPO MODE ===================== -->
+<section class="view" data-view="single">
+  <section class="hero" id="hero">
+    <h1>Map any repo. Map your entire universe.</h1>
+    <p class="lede">Drop a single GitHub URL to explore any public repo — or switch modes to render your entire ONE Universe constellation.</p>
+    <form id="repoForm" class="repo-form" autocomplete="off">
+      <input id="repoUrl" type="text" placeholder="https://github.com/owner/repo  ·  or  owner/repo" required spellcheck="false" />
+      <button type="submit" id="analyzeBtn">Analyze</button>
+    </form>
+    <div id="errorBox" class="error-box" hidden></div>
+    <div id="loadingBar" class="loading-bar" hidden>Fetching repo data…</div>
+    <div class="examples">
+      <span>Try:</span>
+      <button class="chip" data-url="noahnemo-rgb/ONE-">noahnemo-rgb/ONE-</button>
+      <button class="chip" data-url="facebook/react">facebook/react</button>
+      <button class="chip" data-url="expressjs/express">expressjs/express</button>
+    </div>
+  </section>
+
+  <div id="result" hidden>
+    <div class="repo-header">
+      <div>
+        <h2 id="repoName"></h2>
+        <p id="repoDesc" class="repo-desc"></p>
+        <div class="badges">
+          <span class="badge" id="badgeLang"></span>
+          <span class="badge" id="badgeStars"></span>
+          <span class="badge" id="badgeForks"></span>
+          <span class="badge" id="badgeFiles"></span>
+          <span class="badge" id="badgeLicense" hidden></span>
+          <a class="badge gh-link" id="ghLink" href="#" target="_blank" rel="noopener" hidden>View on GitHub ↗</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-bar">
+      <button class="tab active" data-tab="tree">File Tree</button>
+      <button class="tab" data-tab="todos">TODOs</button>
+      <button class="tab" data-tab="deps">Dependencies</button>
+      <button class="tab" data-tab="summaries">Key Files</button>
+    </div>
+
+    <!-- Tree -->
+    <div class="panel" data-panel="tree">
+      <input id="treeSearch" type="text" placeholder="Filter files…" class="search-input" />
+      <div class="tree-layout">
+        <div id="treeView" class="tree-view"></div>
+        <div id="fileDetail" class="file-detail" hidden>
+          <div class="fd-path" id="fdPath"></div>
+          <div class="fd-meta" id="fdMeta"></div>
+          <button id="fdSummarize" class="btn-secondary" hidden>View on GitHub</button>
+          <div id="fdSummary" class="fd-summary" hidden></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TODOs -->
+    <div class="panel" data-panel="todos" hidden>
+      <div class="todo-controls">
+        <div id="todoFilters" class="filter-row"></div>
+        <input id="todoSearch" type="text" placeholder="Search TODOs…" class="search-input" />
+      </div>
+      <div id="todoList" class="todo-list"></div>
+    </div>
+
+    <!-- Deps -->
+    <div class="panel" data-panel="deps" hidden>
+      <div class="deps-layout">
+        <div class="deps-sidebar">
+          <h3>External packages</h3>
+          <div id="depStats" class="muted small"></div>
+          <label class="checkbox-label"><input type="checkbox" id="showExternal" checked /> Show external nodes</label>
+          <ul id="extDepsList" class="ext-deps-list"></ul>
+        </div>
+        <div class="deps-graph-wrap">
+          <svg id="depGraph" class="dep-graph"></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Key Files / Summaries -->
+    <div class="panel" data-panel="summaries" hidden>
+      <div class="summaries-head">
+        <div>
+          <h3>Key files</h3>
+          <p class="muted small">Auto-detected high-signal files. Click any file name to view it on GitHub.</p>
+          <p class="muted small" style="color:#ffd27a">ℹ AI summaries are not available in the static GitHub Pages version.</p>
+        </div>
+      </div>
+      <div id="overviewCard" class="overview-card" hidden>
+        <h4>Architecture overview</h4>
+        <p id="overviewText" class="muted">Not available in static mode.</p>
+      </div>
+      <div id="summariesList" class="summaries-list"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== UNIVERSE MODE ===================== -->
+<section class="view" data-view="universe" hidden>
+  <div class="mode-header">
+    <h2>Universe mode</h2>
+    <p class="lede">Visualize the entire ONE Universe constellation from <code>universe.yaml</code>.</p>
+  </div>
+  <div class="manifest-controls">
+    <select id="universePicker" class="picker"></select>
+    <label class="btn-secondary upload-label">
+      Upload manifest <input type="file" id="universeUploadInput" accept=".yaml,.yml" hidden />
+    </label>
+  </div>
+  <div id="universeLoading" class="loading-bar" hidden>Loading manifest…</div>
+  <div id="universeResult" hidden>
+    <div id="universeStats" class="stats-row" hidden>
+      <div class="stat-card"><span id="statRepos" class="stat-num">—</span><span>repos</span></div>
+      <div class="stat-card"><span id="statEcosystems" class="stat-num">—</span><span>ecosystems</span></div>
+      <div class="stat-card"><span id="statMaturity" class="stat-num">—</span><span>avg maturity</span></div>
+    </div>
+    <div class="utab-bar">
+      <button class="utab active" data-utab="map">Constellation map</button>
+      <button class="utab" data-utab="index">Repo index</button>
+      <button class="utab" data-utab="manifest">Raw manifest</button>
+    </div>
+    <div class="panel" data-upanel="map">
+      <div id="mapLegend" class="map-legend"></div>
+      <svg id="universeMap" class="universe-map"></svg>
+      <div id="repoSide" class="repo-side" hidden>
+        <button id="repoSideClose" class="side-close">✕</button>
+        <h3 id="rsName"></h3>
+        <div id="rsRole" class="muted small"></div>
+        <span id="rsMaturity" class="maturity-pill"></span>
+        <p id="rsDesc"></p>
+        <div id="rsTagsWrap" hidden><strong>Tags:</strong> <span id="rsTags" class="tag-list"></span></div>
+        <div id="rsGapsWrap" hidden><strong>Known gaps:</strong><ul id="rsGaps"></ul></div>
+        <div id="rsContainsWrap" hidden><strong>Contains:</strong><ul id="rsContains"></ul></div>
+        <a id="rsLink" href="#" class="btn-secondary" target="_blank" rel="noopener">View on GitHub ↗</a>
+      </div>
+    </div>
+    <div class="panel" data-upanel="index" hidden>
+      <input id="repoIndexSearch" type="text" placeholder="Filter repos…" class="search-input" />
+      <table class="repo-table">
+        <thead><tr><th>Repo</th><th>Role</th><th>Maturity</th><th>Parent</th><th>Description</th></tr></thead>
+        <tbody id="repoIndexBody"></tbody>
+      </table>
+    </div>
+    <div class="panel" data-upanel="manifest" hidden>
+      <div class="manifest-actions">
+        <button id="manifestCopyBtn" class="btn-secondary">Copy</button>
+        <button id="manifestDownloadBtn" class="btn-secondary">Download .yaml</button>
+      </div>
+      <pre id="manifestYaml" class="manifest-pre"></pre>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== SCAFFOLD MODE ===================== -->
+<section class="view" data-view="scaffold" hidden>
+  <div class="mode-header">
+    <h2>Scaffold mode</h2>
+    <p class="lede">Preview and download the full file scaffold for every repo in a manifest.</p>
+  </div>
+  <div class="manifest-controls">
+    <select id="scaffoldPicker" class="picker"></select>
+    <button id="scaffoldPreviewBtn" class="btn-primary">Generate preview</button>
+    <button id="scaffoldDownloadBtn" class="btn-secondary" hidden>Download .zip</button>
+  </div>
+  <div id="scaffoldStatus" class="status-text"></div>
+  <div id="scaffoldResult" hidden>
+    <div class="scaffold-summary">
+      <strong id="scaffoldUniverseName"></strong>
+      <span id="scaffoldCounts" class="muted small"></span>
+    </div>
+    <div id="scaffoldGrid" class="scaffold-grid"></div>
+  </div>
+</section>
+
+<!-- ===================== GAP DASHBOARD ===================== -->
+<section class="view" data-view="gaps" hidden>
+  <div class="mode-header">
+    <h2>Gap Dashboard</h2>
+    <p class="lede">Live scan of every repo in your universe against GitHub — flags stale repos, missing commits, open issues, and empty compliance stubs.</p>
+  </div>
+  <div class="manifest-controls">
+    <select id="gapsPicker" class="picker"></select>
+    <button id="gapsScanBtn" class="btn-primary">Scan now</button>
+    <label class="checkbox-label"><input type="checkbox" id="gapsOnlyFlagged" /> Show flagged only</label>
+  </div>
+  <div id="gapsStatus" class="status-text"></div>
+  <div id="gapsResult" hidden>
+    <div class="stats-row">
+      <div class="stat-card"><span id="gapTotal" class="stat-num">—</span><span>total</span></div>
+      <div class="stat-card flagged"><span id="gapFlagged" class="stat-num">—</span><span>flagged</span></div>
+      <div class="stat-card quiet"><span id="gapQuiet" class="stat-num">—</span><span>quiet</span></div>
+      <div class="stat-card missing"><span id="gapMissing" class="stat-num">—</span><span>missing</span></div>
+    </div>
+    <div class="table-wrap">
+      <table class="gaps-table">
+        <thead><tr><th>Repo</th><th>Status</th><th>Last commit</th><th>Issues</th><th>Empty stubs</th><th>Unchecked</th><th>Flags</th></tr></thead>
+        <tbody id="gapsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- js-yaml CDN for manifest parsing -->
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@4/dist/js-yaml.min.js"></script>
+<!-- JSZip for scaffold downloads -->
+<script src="https://cdn.jsdelivr.net/npm/jszip@3/dist/jszip.min.js"></script>
+<!-- D3 for graphs -->
+<script type="module" src="app-static.js"></script>
+
+</body>
+</html>
